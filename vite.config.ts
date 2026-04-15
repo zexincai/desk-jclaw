@@ -14,6 +14,10 @@ export default defineConfig(({ mode }) => {
         electron([
           {
             entry: 'electron/main.ts',
+            onstart(options) {
+              // 启动 Electron
+              options.startup()
+            },
             vite: {
               build: {
                 outDir: 'dist-electron',
@@ -26,6 +30,7 @@ export default defineConfig(({ mode }) => {
           {
             entry: 'electron/preload.ts',
             onstart(options) {
+              // 重新加载渲染进程
               options.reload()
             },
             vite: {
