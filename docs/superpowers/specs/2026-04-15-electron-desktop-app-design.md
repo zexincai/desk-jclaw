@@ -207,15 +207,41 @@ if (收到新消息 && !窗口激活状态) {
 
 ### 3.6 自动更新
 
+**更新服务器方案**:
+
+**推荐方案：GitHub Releases（免费）**
+```typescript
+// electron-builder.json5
+{
+  "publish": {
+    "provider": "github",
+    "owner": "your-org",
+    "repo": "jclaw-desktop"
+  }
+}
+```
+
+**备选方案：自建服务器**
+- 使用 S3 + CloudFront
+- 需要生成 `latest.yml` (Windows) 和 `latest-mac.yml` (Mac)
+- 示例结构：
+  ```
+  https://updates.example.com/
+  ├── latest.yml
+  ├── latest-mac.yml
+  ├── JClaw-1.0.0.dmg
+  └── JClaw-Setup-1.0.0.exe
+  ```
+
 **更新流程**:
 ```
 应用启动
   ↓
-检查更新 (GitHub Releases / 自建服务器)
+检查更新 (读取 latest.yml)
   ↓
 发现新版本
   ↓
-后台下载更新包
+后台下载更新包（显示进度）
   ↓
 下载完成，显示通知
   ↓
@@ -231,23 +257,89 @@ if (收到新消息 && !窗口激活状态) {
 
 **版本管理**:
 - 使用 `electron-updater`
-- 版本号遵循 Semver
+- 版本号遵循 Semver (1.0.0)
 - 支持增量更新（仅下载差异）
+
+**CI/CD 集成**:
+```yaml
+# .github/workflows/release.yml
+- name: Build and Release
+  run: |
+    npm run build:electron
+    # 自动上传到 GitHub Releases
+```
 
 ## 4. 技术实现要点
 
 ### 4.1 安全策略
 
-**渲染进程隔离**:
+**安全配置清单（必须全部启用）**:
 ```typescript
 webPreferences: {
   preload: path.join(__dirname, 'preload.js'),
-  contextIsolation: true,      // 隔离上下文
-  nodeIntegration: false,      // 禁用 Node.js
-  webSecurity: true,           // 启用 Web 安全
-  sandbox: true                // 启用沙箱
+  contextIsolation: true,      // ✅ 必须：隔离上下文
+  nodeIntegration: false,      // ✅ 必须：禁用 Node.js
+  webSecurity: true,           // ✅ 必须：启用 Web 安全
+  sandbox: true,               // ✅ 必须：启用沙箱
+  enableRemoteModule: false    // ✅ 必须：禁用 remote 模块
 }
 ```
+
+**关键安全措施**:
+
+1. **密钥存储安全**:
+   - ❌ 不要：在 localStorage 存储私钥（当前 Web 版本做法）
+   - ✅ 应该：将密钥操作移至主进程
+   - ✅ 应该：使用 Electron `safeStorage` API 加密存储
+   ```typescript
+   // 主进程
+   import { safeStorage } from 'electron'
+
+   // 加密存储私钥
+   const encryptedKey = safeStorage.encryptString(privateKey)
+   fs.writeFileSync(keyPath, encryptedKey)
+
+   // 解密使用
+   const decryptedKey = safeStorage.decryptString(encryptedKey)
+   ```
+
+2. **iframe Origin 验证**:
+   - ❌ 不要：使用 `'*'` 通配符
+   - ✅ 应该：严格验证 origin
+   ```typescript
+   // useIframeBridge.ts 修改
+   const ALLOWED_ORIGINS = [
+     import.meta.env.VITE_BUSINESS_SYSTEM_ORIGIN
+   ].filter(Boolean)
+
+   window.addEventListener('message', (event) => {
+     if (!ALLOWED_ORIGINS.includes(event.origin)) {
+       console.warn('Rejected message from unauthorized origin:', event.origin)
+       return
+     }
+     // 处理消息
+   })
+   ```
+
+3. **Content Security Policy**:
+   ```typescript
+   // 主进程设置 CSP
+   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+     callback({
+       responseHeaders: {
+         ...details.responseHeaders,
+         'Content-Security-Policy': [
+           "default-src 'self'",
+           "script-src 'self'",
+           "style-src 'self' 'unsafe-inline'",
+           "img-src 'self' data: https:",
+           "connect-src 'self' wss://your-ws-server.com",
+           "frame-src https://your-business-system.com"
+         ].join('; ')
+       }
+     })
+   })
+   ```
 
 **API 白名单**:
 ```typescript
@@ -434,34 +526,47 @@ export default defineConfig(({ mode }) => {
 
 ## 5. 实施步骤
 
-### 阶段 1: 基础搭建（第 1 天）
-1. 安装依赖
-2. 创建目录结构
+### 前置准备（立即开始）
+- [ ] 申请 Apple Developer ID（$99/年，1-2天审核）
+- [ ] 申请 Windows 代码签名证书（$200-400/年，3-7天审核）
+- [ ] 准备应用图标（1024x1024 PNG）
+
+### 阶段 1: 基础搭建
+1. 安装依赖（electron, vite-plugin-electron, electron-builder）
+2. 创建目录结构（electron/, build/）
 3. 实现主进程基础框架
-4. 实现预加载脚本
+4. 实现预加载脚本（安全桥接）
 5. 配置 Vite 和 Electron Builder
 6. 验证开发环境可运行
 
-### 阶段 2: 核心功能（第 2 天）
+### 阶段 2: 安全加固
+1. 迁移密钥存储到主进程（使用 safeStorage）
+2. 修复 iframe origin 验证（移除通配符）
+3. 配置 CSP 策略
+4. 实现 WebSocket 签名在主进程
+5. 安全审查清单验证
+
+### 阶段 3: 核心功能
 1. 实现窗口管理和状态持久化
-2. 实现系统托盘
+2. 实现系统托盘（平台差异处理）
 3. 实现全局快捷键
 4. 添加平台检测工具
 5. 测试基础功能
 
-### 阶段 3: 增强特性（第 3 天）
-1. 实现文件拖拽上传
+### 阶段 4: 增强特性
+1. 实现文件拖拽上传（集成现有 COS 上传）
 2. 实现系统通知
-3. 集成自动更新
-4. 准备打包资源（图标等）
+3. 集成自动更新（配置 GitHub Releases）
+4. 准备打包资源（图标、权限配置）
 5. 测试所有桌面特性
 
-### 阶段 4: 打包发布（第 4 天）
-1. 配置代码签名（Mac）
-2. 测试打包流程
-3. 生成安装包
-4. 在真实环境测试
-5. 准备发布文档
+### 阶段 5: 打包发布
+1. 配置代码签名（Mac + Windows）
+2. 设置 CI/CD 流程（GitHub Actions）
+3. 测试打包流程
+4. 生成安装包
+5. 在真实环境测试
+6. 准备发布文档
 
 ## 6. 风险和注意事项
 
