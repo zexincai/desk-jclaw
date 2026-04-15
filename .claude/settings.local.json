@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(npm run:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(xargs cat:*)",
+      "Bash(find /Users/lion/Documents/learn/app-jw -name *.env* -type f)",
+      "Bash(build/.gitkeep:*)"
     ]
   }
 }

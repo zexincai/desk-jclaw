@@ -1,0 +1,5 @@
+# 占位文件，确保 build 目录被 git 跟踪
+# 图标文件需要手动添加：
+# - icon.icns (Mac, 1024x1024)
+# - icon.ico (Windows, 256x256)
+# - icon.png (托盘图标, 256x256)
