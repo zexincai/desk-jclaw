@@ -1,5 +1,6 @@
 import require$$1$2, { BrowserWindow, app, screen, nativeImage, Tray, Menu, globalShortcut, ipcMain, dialog, Notification } from "electron";
 import require$$1 from "path";
+import require$$2$1, { fileURLToPath } from "url";
 import fs$1 from "fs";
 import require$$2 from "os";
 import require$$0 from "constants";
@@ -10,9 +11,10 @@ import require$$1$3 from "child_process";
 import require$$0$2 from "events";
 import require$$0$3 from "crypto";
 import require$$1$1 from "tty";
-import require$$2$1 from "url";
 import require$$14 from "zlib";
 import require$$4$1 from "http";
+const __filename$2 = fileURLToPath(import.meta.url);
+const __dirname$2 = require$$1.dirname(__filename$2);
 const isDev$1 = process.env.NODE_ENV === "development";
 let mainWindow = null;
 const stateFilePath = require$$1.join(require$$2.homedir(), ".jclaw", "window-state.json");
@@ -75,7 +77,7 @@ async function createWindow() {
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     frame: process.platform !== "darwin",
     webPreferences: {
-      preload: require$$1.join(__dirname, "preload.js"),
+      preload: require$$1.join(__dirname$2, "preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
       webSecurity: true,
@@ -86,7 +88,7 @@ async function createWindow() {
     await mainWindow.loadURL("http://localhost:5173");
     mainWindow.webContents.openDevTools();
   } else {
-    await mainWindow.loadFile(require$$1.join(__dirname, "../dist/index.html"));
+    await mainWindow.loadFile(require$$1.join(__dirname$2, "../dist/index.html"));
   }
   mainWindow.once("ready-to-show", () => {
     if (!mainWindow) return;
@@ -15636,6 +15638,8 @@ function registerShortcuts() {
     console.log(`Global shortcut registered: ${shortcut}`);
   }
 }
+const __filename$1 = fileURLToPath(import.meta.url);
+const __dirname$1 = require$$1.dirname(__filename$1);
 const isDev = process.env.NODE_ENV === "development";
 const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
@@ -15698,7 +15702,7 @@ ipcMain.handle("show-notification", (_, { title, body }) => {
     new Notification({
       title,
       body,
-      icon: require$$1.join(__dirname, "../build/icon.png")
+      icon: require$$1.join(__dirname$1, "../build/icon.png")
     }).show();
   }
 });

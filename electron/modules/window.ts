@@ -1,7 +1,12 @@
 import { BrowserWindow, screen, app } from 'electron'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import fs from 'fs'
 import os from 'os'
+
+// ES modules 兼容
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const isDev = process.env.NODE_ENV === 'development'
 let mainWindow: BrowserWindow | null = null

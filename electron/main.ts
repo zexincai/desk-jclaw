@@ -1,9 +1,14 @@
 import { app, BrowserWindow, ipcMain, Tray, Menu, globalShortcut, Notification, dialog } from 'electron'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import { createWindow, getMainWindow } from './modules/window'
 import { createTray } from './modules/tray'
 import { setupAutoUpdater } from './modules/updater'
 import { registerShortcuts } from './modules/shortcuts'
+
+// ES modules 兼容
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const isDev = process.env.NODE_ENV === 'development'
 

@@ -1,6 +1,11 @@
 import { Tray, Menu, app, nativeImage } from 'electron'
 import path from 'path'
+import { fileURLToPath } from 'url'
 import { getMainWindow } from './window'
+
+// ES modules 兼容
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 let tray: Tray | null = null
 
