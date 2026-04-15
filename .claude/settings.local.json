@@ -7,7 +7,8 @@
       "Bash(git commit:*)",
       "Bash(xargs cat:*)",
       "Bash(find /Users/lion/Documents/learn/app-jw -name *.env* -type f)",
-      "Bash(build/.gitkeep:*)"
+      "Bash(build/.gitkeep:*)",
+      "Bash(pnpm install:*)"
     ]
   }
 }
