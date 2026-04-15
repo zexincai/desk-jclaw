@@ -8,7 +8,8 @@ import os from 'os'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const isDev = process.env.NODE_ENV === 'development'
+// 开发模式检测
+const isDev = !app.isPackaged
 let mainWindow: BrowserWindow | null = null
 
 // 窗口状态配置文件路径

@@ -77,7 +77,7 @@ async function createWindow() {
     titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
     frame: process.platform !== "darwin",
     webPreferences: {
-      preload: require$$1.join(__dirname$3, "preload.js"),
+      preload: require$$1.join(__dirname$3, "../preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
       webSecurity: true,
