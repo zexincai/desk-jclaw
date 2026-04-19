@@ -1,4 +1,4 @@
-import require$$1$2, { BrowserWindow, app, screen, nativeImage, Tray, Menu, globalShortcut, ipcMain, dialog, Notification } from "electron";
+import require$$1$2, { app, BrowserWindow, screen, nativeImage, Tray, Menu, globalShortcut, ipcMain, dialog, Notification } from "electron";
 import require$$1 from "path";
 import require$$2$1, { fileURLToPath } from "url";
 import fs$1 from "fs";
@@ -15,7 +15,7 @@ import require$$14 from "zlib";
 import require$$4$1 from "http";
 const __filename$3 = fileURLToPath(import.meta.url);
 const __dirname$3 = require$$1.dirname(__filename$3);
-const isDev$1 = process.env.NODE_ENV === "development";
+const isDev$1 = !app.isPackaged;
 let mainWindow = null;
 const stateFilePath = require$$1.join(require$$2.homedir(), ".jclaw", "window-state.json");
 function loadWindowState() {
@@ -74,8 +74,7 @@ async function createWindow() {
     minWidth: 1e3,
     minHeight: 600,
     show: false,
-    titleBarStyle: process.platform === "darwin" ? "hiddenInset" : "default",
-    frame: process.platform !== "darwin",
+    titleBarStyle: "default",
     webPreferences: {
       preload: require$$1.join(__dirname$3, "../preload.js"),
       contextIsolation: true,
