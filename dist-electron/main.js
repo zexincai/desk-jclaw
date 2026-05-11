@@ -13,8 +13,7 @@ import require$$0$3 from "crypto";
 import require$$1$1 from "tty";
 import require$$14 from "zlib";
 import require$$4$1 from "http";
-const __filename$3 = fileURLToPath(import.meta.url);
-const __dirname$3 = require$$1.dirname(__filename$3);
+const appRoot = app.getAppPath();
 const isDev$1 = !app.isPackaged;
 let mainWindow = null;
 const stateFilePath = require$$1.join(require$$2.homedir(), ".jclaw", "window-state.json");
@@ -76,7 +75,7 @@ async function createWindow() {
     show: false,
     titleBarStyle: "default",
     webPreferences: {
-      preload: require$$1.join(__dirname$3, "../preload.js"),
+      preload: require$$1.join(appRoot, "dist-electron/preload.js"),
       contextIsolation: true,
       nodeIntegration: false,
       webSecurity: true,
@@ -87,7 +86,7 @@ async function createWindow() {
     await mainWindow.loadURL("http://localhost:5173");
     mainWindow.webContents.openDevTools();
   } else {
-    await mainWindow.loadFile(require$$1.join(__dirname$3, "../dist/index.html"));
+    await mainWindow.loadFile(require$$1.join(appRoot, "dist/index.html"));
   }
   mainWindow.once("ready-to-show", () => {
     if (!mainWindow) return;
@@ -102,14 +101,6 @@ async function createWindow() {
   mainWindow.on("closed", () => {
     mainWindow = null;
   });
-  if (process.platform === "darwin") {
-    mainWindow.on("close", (event) => {
-      if (!app.isQuitting) {
-        event.preventDefault();
-        mainWindow == null ? void 0 : mainWindow.hide();
-      }
-    });
-  }
   return mainWindow;
 }
 function getMainWindow() {
@@ -15666,10 +15657,11 @@ if (!gotTheLock) {
       }
     });
   });
+  app.on("before-quit", () => {
+    app.isQuitting = true;
+  });
   app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-      app.quit();
-    }
+    app.quit();
   });
   app.on("will-quit", () => {
     globalShortcut.unregisterAll();

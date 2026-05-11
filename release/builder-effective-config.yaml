@@ -1,0 +1,33 @@
+directories:
+  output: release
+  buildResources: build
+appId: com.jclaw.desktop
+productName: JClaw AI
+files:
+  - filter:
+      - dist/**/*
+      - dist-electron/**/*
+mac:
+  target:
+    - dmg
+    - zip
+  icon: build/icon.icns
+  category: public.app-category.productivity
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+win:
+  target:
+    - nsis
+  icon: build/icon.ico
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+publish:
+  provider: github
+  owner: your-org
+  repo: jclaw-desktop
+electronVersion: 28.3.3

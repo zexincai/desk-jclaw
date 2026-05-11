@@ -1,12 +1,10 @@
 import { BrowserWindow, screen, app } from 'electron'
 import path from 'path'
-import { fileURLToPath } from 'url'
 import fs from 'fs'
 import os from 'os'
 
-// ES modules 兼容
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+// 使用 app.getAppPath() 获取应用根目录，避免打包后路径错误
+const appRoot = app.getAppPath()
 
 // 开发模式检测
 const isDev = !app.isPackaged
@@ -103,7 +101,7 @@ export async function createWindow() {
     show: false,
     titleBarStyle: 'default',
     webPreferences: {
-      preload: path.join(__dirname, '../preload.js'),
+      preload: path.join(appRoot, 'dist-electron/preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
       webSecurity: true,
@@ -116,7 +114,7 @@ export async function createWindow() {
     await mainWindow.loadURL('http://localhost:5173')
     mainWindow.webContents.openDevTools()
   } else {
-    await mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
+    await mainWindow.loadFile(path.join(appRoot, 'dist/index.html'))
   }
 
   // 窗口准备好后显示
@@ -137,16 +135,6 @@ export async function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null
   })
-
-  // Mac 特殊处理：关闭窗口不退出应用
-  if (process.platform === 'darwin') {
-    mainWindow.on('close', (event) => {
-      if (!app.isQuitting) {
-        event.preventDefault()
-        mainWindow?.hide()
-      }
-    })
-  }
 
   return mainWindow
 }

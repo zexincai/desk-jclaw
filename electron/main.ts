@@ -48,10 +48,12 @@ if (!gotTheLock) {
     })
   })
 
+  app.on('before-quit', () => {
+    (app as any).isQuitting = true
+  })
+
   app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
-      app.quit()
-    }
+    app.quit()
   })
 
   app.on('will-quit', () => {

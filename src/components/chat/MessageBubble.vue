@@ -1,9 +1,9 @@
 <template>
   <!-- 用户消息：右对齐粉色气泡 + 用户头像 -->
-  <div v-if="message.role === 'user'" class="flex justify-end items-start gap-2 mb-3">
+  <div v-if="message.role === 'user'" class="flex items-start justify-end gap-2 mb-3">
     <div class="max-w-[75%] flex flex-col items-end gap-1">
       <!-- 附件缩略图（图片） -->
-      <div v-if="message.attachments?.length" class="flex flex-wrap gap-1 justify-end">
+      <div v-if="message.attachments?.length" class="flex flex-wrap justify-end gap-1">
         <template v-for="att in message.attachments" :key="att.name">
           <img
             v-if="att.mimeType.startsWith('image/')"
@@ -49,17 +49,31 @@
   <div v-else class="flex items-start gap-2 mb-4 max-w-[85%]">
     <div class="w-7 h-7 rounded-full overflow-hidden shrink-0 mt-0.5 border border-gray-100 shadow-sm"
       :title="projectName">
-      <img :src="logoUrl" class="w-full h-full object-cover" />
+      <img :src="logoUrl" class="object-cover w-full h-full" />
     </div>
     <div class="flex flex-col min-w-0">
-      <!-- <span class="text-xs text-gray-400 mb-1">Assistant{{ projectName }}</span> -->
-      <div class="px-4 py-3 bg-white border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm">
+      <!-- <span class="mb-1 text-xs text-gray-400">Assistant{{ projectName }}</span> -->
+      <div class="px-4 py-3 bg-white border border-gray-100 rounded-tl-sm shadow-sm rounded-2xl">
         <ThinkingBlock v-if="message.thinking" :content="message.thinking"
           :streaming="message.status === 'streaming'" />
-        <MarkdownContent :content="message.content || ''" :streaming="message.status === 'streaming'" />
-        <ActionCard v-if="message.actionJson && !message.actionJson.autoOpen" :modal="message.actionJson.modal"
-          @trigger="emit('open-modal', message.actionJson!)" />
-        <ActionTagButton v-if="message.platformAction" :action="message.platformAction" />
+        <MarkdownContent :content="message.content || ''" :streaming="message.status === 'streaming'" :disabled="store.aiReplying" />
+        <!-- <ActionCard v-if="message.actionJson && !message.actionJson.autoOpen" :modal="message.actionJson.modal"
+          @trigger="emit('open-modal', message.actionJson!)" /> -->
+        <div v-if="message.platformActions?.length" class="flex flex-wrap gap-2 mt-1">
+          <ActionTagButton v-for="(act, i) in message.platformActions" :key="i" :action="act" :disabled="store.aiReplying" />
+        </div>
+      </div>
+      <!-- 第一条消息 <MSG_SPLIT> 后半段竖向展示 -->
+      <div v-if="message.splitContents?.length" class="flex flex-col gap-2 mt-2">
+        <div v-for="(item, idx) in message.splitContents" :key="idx">
+          <template v-for="(action) in parseSplitAction(item)" :key="ai">
+            <div
+              class="px-3 py-1 mb-2 text-sm text-gray-600 transition-colors border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 w-max"
+              @click="chat.send(action.userInput); clearSplit(message.id)">
+              {{ action.label }}
+            </div>
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -69,16 +83,16 @@
     <div
       v-if="previewImage"
       @click="previewImage = null"
-      class="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 cursor-zoom-out"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 cursor-zoom-out"
     >
       <img
         :src="previewImage"
-        class="max-w-full max-h-full object-contain"
+        class="object-contain max-w-full max-h-full"
         @click.stop
       />
       <button
         @click="previewImage = null"
-        class="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white text-2xl transition-colors"
+        class="absolute flex items-center justify-center w-10 h-10 text-2xl text-white transition-colors rounded-full top-4 right-4 bg-white/10 hover:bg-white/20"
       >
         ×
       </button>
@@ -92,11 +106,13 @@ import { AlertCircle, Paperclip, ExternalLink } from 'lucide-vue-next'
 import type { Message, ActionPayload } from '../../stores/chat'
 import { useChatStore } from '../../stores/chat'
 import ThinkingBlock from './ThinkingBlock.vue'
-import ActionCard from './ActionCard.vue'
 import ActionTagButton from './ActionTagButton.vue'
 import MarkdownContent from './MarkdownContent.vue'
 import AudioPlayer from '../ui/AudioPlayer.vue'
 import logoUrl from '../../assets/logo.png'
+import { useChat } from '../../composables/useChat'
+
+const chat = useChat()
 
 defineProps<{ message: Message }>()
 const emit = defineEmits<{ retry: []; 'open-modal': [action: ActionPayload]; 'image-loaded': [] }>()
@@ -111,5 +127,25 @@ function openImagePreview(url: string) {
 
 function openFile(url: string) {
   window.open(url, '_blank')
+}
+
+function clearSplit(msgId: string) {
+  const msg = store.messages.find(m => m.id === msgId)
+  if (msg) msg.splitContents = []
+}
+
+interface SplitAction { label: string; userInput: string }
+
+function parseSplitAction(raw: string): SplitAction[] {
+  const results: SplitAction[] = []
+  const re = /<pcAction>([\s\S]*?)<\/pcAction>/gi
+  let match: RegExpExecArray | null
+  while ((match = re.exec(raw)) !== null) {
+    try {
+      const parsed = JSON.parse(match[1].trim())
+      if (parsed.label) results.push({ label: parsed.label, userInput: parsed.userInput || parsed.label })
+    } catch { /* ignore */ }
+  }
+  return results
 }
 </script>

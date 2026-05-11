@@ -1,17 +1,19 @@
 <template>
   <!-- Category tabs -->
   <div class="flex items-center gap-2 px-4 py-2 overflow-x-auto scrollbar-hide border-b border-gray-50">
-    <div v-for="tab in TABS" :key="tab.type" class="relative shrink-0" :ref="el => setTabRef(tab.type, el)">
+    <div v-for="tab in tabs" :key="tab.type" class="relative shrink-0" :ref="el => setTabRef(tab.type, el)">
       <button @click="togglePopup(tab.type)"
         class="flex items-center gap-1.5 px-3 py-1.5 text-xs border rounded-full transition-colors whitespace-nowrap"
         :class="openType === tab.type
           ? 'bg-blue-50 border-blue-200 text-blue-600'
           : 'border-gray-200 text-gray-900 hover:bg-gray-50'">
-        <component :is="tab.icon" :size="12" />
         {{ tab.label }}
         <ChevronRight :size="10" />
       </button>
     </div>
+    <div class="flex-1" />
+    <p v-if="aiReplying && (hasInput || hasFiles)"
+      class="text-xs text-red-400 shrink-0 self-center mr-2">AI智能体正在处理事项，需等待处理完成或中止当前事项</p>
   </div>
 
   <!-- Popup -->
@@ -49,7 +51,7 @@
       @click="closeDialog">
       <div class="bg-white rounded-xl shadow-xl w-96 p-6" @click.stop>
         <div class="mb-4 text-sm text-gray-400 text-center">
-          {{TABS.find(t => t.type === openType)?.label}}
+          {{tabs.find(t => t.type === openType)?.label}}
         </div>
         <div class="space-y-4">
           <div class="flex items-center gap-3">
@@ -75,8 +77,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { ChevronRight, Plus, Trash2, ListTodo, FileEdit, Search, BarChart2 } from 'lucide-vue-next'
+import { ref, onMounted } from 'vue'
+import { ChevronRight, Plus, Trash2 } from 'lucide-vue-next'
+import { useQuickTypes } from '../../composables/useQuickTypes'
 import {
   getUserAccountChatQuickList,
   addChatQuick,
@@ -84,14 +87,13 @@ import {
   type EngAgentChatQuickVO,
 } from '../../api/chatQuick'
 
-const emit = defineEmits<{ action: [message: string] }>()
+const emit = defineEmits<{ action: [{ title: string; words: string }] }>()
 
-const TABS = [
-  { type: '0', label: '待办事项', icon: ListTodo },
-  { type: '1', label: '录入资料', icon: FileEdit },
-  { type: '2', label: '查询记录', icon: Search },
-  { type: '3', label: '汇总数据', icon: BarChart2 },
-]
+defineProps<{ aiReplying: boolean; hasInput: boolean; hasFiles: boolean }>()
+
+const { tabs, fetchTabs } = useQuickTypes()
+
+onMounted(fetchTabs)
 
 const openType = ref<string | null>(null)
 const popupPos = ref<{ bottom: number; left: number } | null>(null)
@@ -143,7 +145,7 @@ function closePopup() {
 }
 
 function selectItem(item: EngAgentChatQuickVO) {
-  emit('action', item.quickWords || '')
+  emit('action', { title: item.quickTitle || '', words: item.quickWords || '' })
   closePopup()
 }
 

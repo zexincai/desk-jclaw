@@ -9,7 +9,16 @@
       "Bash(find /Users/lion/Documents/learn/app-jw -name *.env* -type f)",
       "Bash(build/.gitkeep:*)",
       "Bash(pnpm install:*)",
-      "Bash(npx electron:*)"
+      "Bash(npx electron:*)",
+      "Bash(npx vite:*)",
+      "Bash(sudo chmod:*)",
+      "Bash(chmod:*)",
+      "Bash(npx vue-tsc:*)",
+      "Bash(sudo rm:*)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(curl -s http://localhost:5173/src/main.ts)",
+      "Bash(kill 40882)",
+      "Bash(find /Users/lion/Documents/learn/app-jw -user root -not -path */node_modules/.pnpm/*)"
     ]
   }
 }

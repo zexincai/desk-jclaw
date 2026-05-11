@@ -7,6 +7,7 @@ export interface Project {
   channelId: string;
   avatar?: string;
   orgType?: number;
+  isMaster?: number;
 }
 
 export interface Session {
@@ -43,10 +44,12 @@ export interface Message {
   content: string;
   thinking?: string;
   actionJson?: ActionPayload;
-  platformAction?: PlatformAction;
+  platformActions?: PlatformAction[];
   attachments?: Attachment[];
   status: "sending" | "streaming" | "done" | "error";
   createdAt: string;
+  /** <MSG_SPLIT> 后拆分出的内容片段（竖向展示），仅第一条记录有 */
+  splitContents?: string[];
 }
 
 export interface UsageStats {
@@ -89,6 +92,14 @@ export const useChatStore = defineStore("chat", () => {
       );
   }
 
+  /** 退出登录时重置所有会话状态 */
+  function resetAll() {
+    sessions.value = []
+    activeSessionId.value = ''
+    messages.value = []
+    aiReplying.value = false
+  }
+
   return {
     projects,
     activeProjectId,
@@ -104,5 +115,6 @@ export const useChatStore = defineStore("chat", () => {
     activeProject,
     activeSessionMessages,
     sessionsByProject,
+    resetAll,
   };
 });

@@ -22,20 +22,31 @@ export default defineConfig(({ mode }) => {
               build: {
                 outDir: 'dist-electron',
                 rollupOptions: {
+                  output: {
+                    format: 'cjs',
+                    entryFileNames: '[name].js'
+                  },
                   external: ['electron']
                 }
               }
             }
           },
           {
-            entry: 'electron/preload.ts',
+            entry: 'electron/preload.js',
             onstart(options) {
               // 重新加载渲染进程
               options.reload()
             },
             vite: {
               build: {
-                outDir: 'dist-electron'
+                outDir: 'dist-electron',
+                rollupOptions: {
+                  output: {
+                    format: 'cjs',
+                    entryFileNames: '[name].js'
+                  },
+                  external: ['electron']
+                }
               }
             }
           }
