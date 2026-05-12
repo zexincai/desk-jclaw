@@ -1,4 +1,4 @@
-import require$$1$2, { app, BrowserWindow, screen, nativeImage, Tray, Menu, globalShortcut, ipcMain, dialog, Notification } from "electron";
+import require$$1$2, { app, BrowserWindow, screen, nativeImage, Tray, globalShortcut, Menu, ipcMain, dialog, Notification } from "electron";
 import require$$1 from "path";
 import require$$2$1, { fileURLToPath } from "url";
 import fs$1 from "fs";
@@ -117,26 +117,6 @@ function createTray() {
     icon.setTemplateImage(true);
   }
   tray = new Tray(icon);
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: "显示窗口",
-      click: () => {
-        const mainWindow2 = getMainWindow();
-        if (mainWindow2) {
-          mainWindow2.show();
-          mainWindow2.focus();
-        }
-      }
-    },
-    { type: "separator" },
-    {
-      label: "退出 JClaw",
-      click: () => {
-        app.quit();
-      }
-    }
-  ]);
-  tray.setContextMenu(contextMenu);
   tray.setToolTip("JClaw AI");
   tray.on("click", () => {
     const mainWindow2 = getMainWindow();
@@ -964,7 +944,7 @@ var hasRequiredFs;
 function requireFs() {
   if (hasRequiredFs) return fs;
   hasRequiredFs = 1;
-  (function(exports$1) {
+  (function(exports) {
     const u = requireUniversalify().fromCallback;
     const fs2 = requireGracefulFs();
     const api = [
@@ -1005,11 +985,11 @@ function requireFs() {
     ].filter((key) => {
       return typeof fs2[key] === "function";
     });
-    Object.assign(exports$1, fs2);
+    Object.assign(exports, fs2);
     api.forEach((method) => {
-      exports$1[method] = u(fs2[method]);
+      exports[method] = u(fs2[method]);
     });
-    exports$1.exists = function(filename, callback) {
+    exports.exists = function(filename, callback) {
       if (typeof callback === "function") {
         return fs2.exists(filename, callback);
       }
@@ -1017,7 +997,7 @@ function requireFs() {
         return fs2.exists(filename, resolve);
       });
     };
-    exports$1.read = function(fd, buffer, offset, length, position, callback) {
+    exports.read = function(fd, buffer, offset, length, position, callback) {
       if (typeof callback === "function") {
         return fs2.read(fd, buffer, offset, length, position, callback);
       }
@@ -1028,7 +1008,7 @@ function requireFs() {
         });
       });
     };
-    exports$1.write = function(fd, buffer, ...args) {
+    exports.write = function(fd, buffer, ...args) {
       if (typeof args[args.length - 1] === "function") {
         return fs2.write(fd, buffer, ...args);
       }
@@ -1040,7 +1020,7 @@ function requireFs() {
       });
     };
     if (typeof fs2.writev === "function") {
-      exports$1.writev = function(fd, buffers, ...args) {
+      exports.writev = function(fd, buffers, ...args) {
         if (typeof args[args.length - 1] === "function") {
           return fs2.writev(fd, buffers, ...args);
         }
@@ -1053,7 +1033,7 @@ function requireFs() {
       };
     }
     if (typeof fs2.realpath.native === "function") {
-      exports$1.realpath.native = u(fs2.realpath.native);
+      exports.realpath.native = u(fs2.realpath.native);
     } else {
       process.emitWarning(
         "fs.realpath.native is not a function. Is fs being monkey-patched?",
@@ -2290,6 +2270,9 @@ function requireUtils() {
   function stringify(obj, { EOL = "\n", finalEOL = true, replacer = null, spaces } = {}) {
     const EOF = finalEOL ? EOL : "";
     const str2 = JSON.stringify(obj, replacer, spaces);
+    if (str2 === void 0) {
+      throw new TypeError(`Converting ${typeof obj} value to JSON is not supported`);
+    }
     return str2.replace(/\n/g, EOL) + EOF;
   }
   function stripBom(content) {
@@ -3053,13 +3036,13 @@ var hasRequiredBrowser;
 function requireBrowser() {
   if (hasRequiredBrowser) return browser.exports;
   hasRequiredBrowser = 1;
-  (function(module, exports$1) {
-    exports$1.formatArgs = formatArgs;
-    exports$1.save = save;
-    exports$1.load = load;
-    exports$1.useColors = useColors;
-    exports$1.storage = localstorage();
-    exports$1.destroy = /* @__PURE__ */ (() => {
+  (function(module, exports) {
+    exports.formatArgs = formatArgs;
+    exports.save = save;
+    exports.load = load;
+    exports.useColors = useColors;
+    exports.storage = localstorage();
+    exports.destroy = /* @__PURE__ */ (() => {
       let warned = false;
       return () => {
         if (!warned) {
@@ -3068,7 +3051,7 @@ function requireBrowser() {
         }
       };
     })();
-    exports$1.colors = [
+    exports.colors = [
       "#0000CC",
       "#0000FF",
       "#0033CC",
@@ -3180,14 +3163,14 @@ function requireBrowser() {
       });
       args.splice(lastC, 0, c);
     }
-    exports$1.log = console.debug || console.log || (() => {
+    exports.log = console.debug || console.log || (() => {
     });
     function save(namespaces) {
       try {
         if (namespaces) {
-          exports$1.storage.setItem("debug", namespaces);
+          exports.storage.setItem("debug", namespaces);
         } else {
-          exports$1.storage.removeItem("debug");
+          exports.storage.removeItem("debug");
         }
       } catch (error2) {
       }
@@ -3195,7 +3178,7 @@ function requireBrowser() {
     function load() {
       let r;
       try {
-        r = exports$1.storage.getItem("debug") || exports$1.storage.getItem("DEBUG");
+        r = exports.storage.getItem("debug") || exports.storage.getItem("DEBUG");
       } catch (error2) {
       }
       if (!r && typeof process !== "undefined" && "env" in process) {
@@ -3209,7 +3192,7 @@ function requireBrowser() {
       } catch (error2) {
       }
     }
-    module.exports = requireCommon$1()(exports$1);
+    module.exports = requireCommon$1()(exports);
     const { formatters } = module.exports;
     formatters.j = function(v) {
       try {
@@ -3341,25 +3324,25 @@ var hasRequiredNode;
 function requireNode() {
   if (hasRequiredNode) return node.exports;
   hasRequiredNode = 1;
-  (function(module, exports$1) {
+  (function(module, exports) {
     const tty = require$$1$1;
     const util2 = require$$4;
-    exports$1.init = init;
-    exports$1.log = log;
-    exports$1.formatArgs = formatArgs;
-    exports$1.save = save;
-    exports$1.load = load;
-    exports$1.useColors = useColors;
-    exports$1.destroy = util2.deprecate(
+    exports.init = init;
+    exports.log = log;
+    exports.formatArgs = formatArgs;
+    exports.save = save;
+    exports.load = load;
+    exports.useColors = useColors;
+    exports.destroy = util2.deprecate(
       () => {
       },
       "Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`."
     );
-    exports$1.colors = [6, 2, 3, 4, 5, 1];
+    exports.colors = [6, 2, 3, 4, 5, 1];
     try {
       const supportsColor = requireSupportsColor();
       if (supportsColor && (supportsColor.stderr || supportsColor).level >= 2) {
-        exports$1.colors = [
+        exports.colors = [
           20,
           21,
           26,
@@ -3440,7 +3423,7 @@ function requireNode() {
       }
     } catch (error2) {
     }
-    exports$1.inspectOpts = Object.keys(process.env).filter((key) => {
+    exports.inspectOpts = Object.keys(process.env).filter((key) => {
       return /^debug_/i.test(key);
     }).reduce((obj, key) => {
       const prop = key.substring(6).toLowerCase().replace(/_([a-z])/g, (_, k) => {
@@ -3460,7 +3443,7 @@ function requireNode() {
       return obj;
     }, {});
     function useColors() {
-      return "colors" in exports$1.inspectOpts ? Boolean(exports$1.inspectOpts.colors) : tty.isatty(process.stderr.fd);
+      return "colors" in exports.inspectOpts ? Boolean(exports.inspectOpts.colors) : tty.isatty(process.stderr.fd);
     }
     function formatArgs(args) {
       const { namespace: name, useColors: useColors2 } = this;
@@ -3475,13 +3458,13 @@ function requireNode() {
       }
     }
     function getDate() {
-      if (exports$1.inspectOpts.hideDate) {
+      if (exports.inspectOpts.hideDate) {
         return "";
       }
       return (/* @__PURE__ */ new Date()).toISOString() + " ";
     }
     function log(...args) {
-      return process.stderr.write(util2.formatWithOptions(exports$1.inspectOpts, ...args) + "\n");
+      return process.stderr.write(util2.formatWithOptions(exports.inspectOpts, ...args) + "\n");
     }
     function save(namespaces) {
       if (namespaces) {
@@ -3495,12 +3478,12 @@ function requireNode() {
     }
     function init(debug) {
       debug.inspectOpts = {};
-      const keys = Object.keys(exports$1.inspectOpts);
+      const keys = Object.keys(exports.inspectOpts);
       for (let i = 0; i < keys.length; i++) {
-        debug.inspectOpts[keys[i]] = exports$1.inspectOpts[keys[i]];
+        debug.inspectOpts[keys[i]] = exports.inspectOpts[keys[i]];
       }
     }
-    module.exports = requireCommon$1()(exports$1);
+    module.exports = requireCommon$1()(exports);
     const { formatters } = module.exports;
     formatters.o = function(v) {
       this.inspectOpts.colors = this.useColors;
@@ -4401,7 +4384,7 @@ var hasRequiredSax;
 function requireSax() {
   if (hasRequiredSax) return sax;
   hasRequiredSax = 1;
-  (function(exports$1) {
+  (function(exports) {
     (function(sax2) {
       sax2.parser = function(strict, opt) {
         return new SAXParser(strict, opt);
@@ -5986,7 +5969,7 @@ function requireSax() {
           }
         })();
       }
-    })(exports$1);
+    })(exports);
   })(sax);
   return sax;
 }
@@ -6106,91 +6089,91 @@ var hasRequiredOut;
 function requireOut() {
   if (hasRequiredOut) return out;
   hasRequiredOut = 1;
-  (function(exports$1) {
-    Object.defineProperty(exports$1, "__esModule", { value: true });
-    exports$1.CURRENT_APP_PACKAGE_FILE_NAME = exports$1.CURRENT_APP_INSTALLER_FILE_NAME = exports$1.XElement = exports$1.parseXml = exports$1.UUID = exports$1.parseDn = exports$1.retry = exports$1.githubTagPrefix = exports$1.githubUrl = exports$1.getS3LikeProviderBaseUrl = exports$1.ProgressCallbackTransform = exports$1.MemoLazy = exports$1.safeStringifyJson = exports$1.safeGetHeader = exports$1.parseJson = exports$1.HttpExecutor = exports$1.HttpError = exports$1.DigestTransform = exports$1.createHttpError = exports$1.configureRequestUrl = exports$1.configureRequestOptionsFromUrl = exports$1.configureRequestOptions = exports$1.newError = exports$1.CancellationToken = exports$1.CancellationError = void 0;
-    exports$1.asArray = asArray;
+  (function(exports) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.CURRENT_APP_PACKAGE_FILE_NAME = exports.CURRENT_APP_INSTALLER_FILE_NAME = exports.XElement = exports.parseXml = exports.UUID = exports.parseDn = exports.retry = exports.githubTagPrefix = exports.githubUrl = exports.getS3LikeProviderBaseUrl = exports.ProgressCallbackTransform = exports.MemoLazy = exports.safeStringifyJson = exports.safeGetHeader = exports.parseJson = exports.HttpExecutor = exports.HttpError = exports.DigestTransform = exports.createHttpError = exports.configureRequestUrl = exports.configureRequestOptionsFromUrl = exports.configureRequestOptions = exports.newError = exports.CancellationToken = exports.CancellationError = void 0;
+    exports.asArray = asArray;
     var CancellationToken_1 = requireCancellationToken();
-    Object.defineProperty(exports$1, "CancellationError", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "CancellationError", { enumerable: true, get: function() {
       return CancellationToken_1.CancellationError;
     } });
-    Object.defineProperty(exports$1, "CancellationToken", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "CancellationToken", { enumerable: true, get: function() {
       return CancellationToken_1.CancellationToken;
     } });
     var error_1 = requireError();
-    Object.defineProperty(exports$1, "newError", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "newError", { enumerable: true, get: function() {
       return error_1.newError;
     } });
     var httpExecutor_1 = requireHttpExecutor();
-    Object.defineProperty(exports$1, "configureRequestOptions", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "configureRequestOptions", { enumerable: true, get: function() {
       return httpExecutor_1.configureRequestOptions;
     } });
-    Object.defineProperty(exports$1, "configureRequestOptionsFromUrl", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "configureRequestOptionsFromUrl", { enumerable: true, get: function() {
       return httpExecutor_1.configureRequestOptionsFromUrl;
     } });
-    Object.defineProperty(exports$1, "configureRequestUrl", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "configureRequestUrl", { enumerable: true, get: function() {
       return httpExecutor_1.configureRequestUrl;
     } });
-    Object.defineProperty(exports$1, "createHttpError", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "createHttpError", { enumerable: true, get: function() {
       return httpExecutor_1.createHttpError;
     } });
-    Object.defineProperty(exports$1, "DigestTransform", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "DigestTransform", { enumerable: true, get: function() {
       return httpExecutor_1.DigestTransform;
     } });
-    Object.defineProperty(exports$1, "HttpError", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "HttpError", { enumerable: true, get: function() {
       return httpExecutor_1.HttpError;
     } });
-    Object.defineProperty(exports$1, "HttpExecutor", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "HttpExecutor", { enumerable: true, get: function() {
       return httpExecutor_1.HttpExecutor;
     } });
-    Object.defineProperty(exports$1, "parseJson", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "parseJson", { enumerable: true, get: function() {
       return httpExecutor_1.parseJson;
     } });
-    Object.defineProperty(exports$1, "safeGetHeader", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "safeGetHeader", { enumerable: true, get: function() {
       return httpExecutor_1.safeGetHeader;
     } });
-    Object.defineProperty(exports$1, "safeStringifyJson", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "safeStringifyJson", { enumerable: true, get: function() {
       return httpExecutor_1.safeStringifyJson;
     } });
     var MemoLazy_1 = requireMemoLazy();
-    Object.defineProperty(exports$1, "MemoLazy", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "MemoLazy", { enumerable: true, get: function() {
       return MemoLazy_1.MemoLazy;
     } });
     var ProgressCallbackTransform_1 = requireProgressCallbackTransform();
-    Object.defineProperty(exports$1, "ProgressCallbackTransform", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "ProgressCallbackTransform", { enumerable: true, get: function() {
       return ProgressCallbackTransform_1.ProgressCallbackTransform;
     } });
     var publishOptions_1 = requirePublishOptions();
-    Object.defineProperty(exports$1, "getS3LikeProviderBaseUrl", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "getS3LikeProviderBaseUrl", { enumerable: true, get: function() {
       return publishOptions_1.getS3LikeProviderBaseUrl;
     } });
-    Object.defineProperty(exports$1, "githubUrl", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "githubUrl", { enumerable: true, get: function() {
       return publishOptions_1.githubUrl;
     } });
-    Object.defineProperty(exports$1, "githubTagPrefix", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "githubTagPrefix", { enumerable: true, get: function() {
       return publishOptions_1.githubTagPrefix;
     } });
     var retry_1 = requireRetry();
-    Object.defineProperty(exports$1, "retry", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "retry", { enumerable: true, get: function() {
       return retry_1.retry;
     } });
     var rfc2253Parser_1 = requireRfc2253Parser();
-    Object.defineProperty(exports$1, "parseDn", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "parseDn", { enumerable: true, get: function() {
       return rfc2253Parser_1.parseDn;
     } });
     var uuid_1 = requireUuid();
-    Object.defineProperty(exports$1, "UUID", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "UUID", { enumerable: true, get: function() {
       return uuid_1.UUID;
     } });
     var xml_1 = requireXml();
-    Object.defineProperty(exports$1, "parseXml", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "parseXml", { enumerable: true, get: function() {
       return xml_1.parseXml;
     } });
-    Object.defineProperty(exports$1, "XElement", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "XElement", { enumerable: true, get: function() {
       return xml_1.XElement;
     } });
-    exports$1.CURRENT_APP_INSTALLER_FILE_NAME = "installer.exe";
-    exports$1.CURRENT_APP_PACKAGE_FILE_NAME = "package.7z";
+    exports.CURRENT_APP_INSTALLER_FILE_NAME = "installer.exe";
+    exports.CURRENT_APP_PACKAGE_FILE_NAME = "package.7z";
     function asArray(v) {
       if (v == null) {
         return [];
@@ -9070,19 +9053,19 @@ var hasRequiredRe;
 function requireRe() {
   if (hasRequiredRe) return re.exports;
   hasRequiredRe = 1;
-  (function(module, exports$1) {
+  (function(module, exports) {
     const {
       MAX_SAFE_COMPONENT_LENGTH,
       MAX_SAFE_BUILD_LENGTH,
       MAX_LENGTH
     } = requireConstants();
     const debug = requireDebug();
-    exports$1 = module.exports = {};
-    const re2 = exports$1.re = [];
-    const safeRe = exports$1.safeRe = [];
-    const src2 = exports$1.src = [];
-    const safeSrc = exports$1.safeSrc = [];
-    const t = exports$1.t = {};
+    exports = module.exports = {};
+    const re2 = exports.re = [];
+    const safeRe = exports.safeRe = [];
+    const src2 = exports.src = [];
+    const safeSrc = exports.safeSrc = [];
+    const t = exports.t = {};
     let R = 0;
     const LETTERDASHNUMBER = "[a-zA-Z0-9-]";
     const safeRegexReplacements = [
@@ -9135,18 +9118,18 @@ function requireRe() {
     createToken("COERCERTLFULL", src2[t.COERCEFULL], true);
     createToken("LONETILDE", "(?:~>?)");
     createToken("TILDETRIM", `(\\s*)${src2[t.LONETILDE]}\\s+`, true);
-    exports$1.tildeTrimReplace = "$1~";
+    exports.tildeTrimReplace = "$1~";
     createToken("TILDE", `^${src2[t.LONETILDE]}${src2[t.XRANGEPLAIN]}$`);
     createToken("TILDELOOSE", `^${src2[t.LONETILDE]}${src2[t.XRANGEPLAINLOOSE]}$`);
     createToken("LONECARET", "(?:\\^)");
     createToken("CARETTRIM", `(\\s*)${src2[t.LONECARET]}\\s+`, true);
-    exports$1.caretTrimReplace = "$1^";
+    exports.caretTrimReplace = "$1^";
     createToken("CARET", `^${src2[t.LONECARET]}${src2[t.XRANGEPLAIN]}$`);
     createToken("CARETLOOSE", `^${src2[t.LONECARET]}${src2[t.XRANGEPLAINLOOSE]}$`);
     createToken("COMPARATORLOOSE", `^${src2[t.GTLT]}\\s*(${src2[t.LOOSEPLAIN]})$|^$`);
     createToken("COMPARATOR", `^${src2[t.GTLT]}\\s*(${src2[t.FULLPLAIN]})$|^$`);
     createToken("COMPARATORTRIM", `(\\s*)${src2[t.GTLT]}\\s*(${src2[t.LOOSEPLAIN]}|${src2[t.XRANGEPLAIN]})`, true);
-    exports$1.comparatorTrimReplace = "$1$2$3";
+    exports.comparatorTrimReplace = "$1$2$3";
     createToken("HYPHENRANGE", `^\\s*(${src2[t.XRANGEPLAIN]})\\s+-\\s+(${src2[t.XRANGEPLAIN]})\\s*$`);
     createToken("HYPHENRANGELOOSE", `^\\s*(${src2[t.XRANGEPLAINLOOSE]})\\s+-\\s+(${src2[t.XRANGEPLAINLOOSE]})\\s*$`);
     createToken("STAR", "(<|>)?=?\\s*\\*");
@@ -10962,7 +10945,7 @@ var hasRequiredLodash_isequal;
 function requireLodash_isequal() {
   if (hasRequiredLodash_isequal) return lodash_isequal.exports;
   hasRequiredLodash_isequal = 1;
-  (function(module, exports$1) {
+  (function(module, exports) {
     var LARGE_ARRAY_SIZE = 200;
     var HASH_UNDEFINED = "__lodash_hash_undefined__";
     var COMPARE_PARTIAL_FLAG = 1, COMPARE_UNORDERED_FLAG = 2;
@@ -10978,7 +10961,7 @@ function requireLodash_isequal() {
     var freeGlobal = typeof commonjsGlobal == "object" && commonjsGlobal && commonjsGlobal.Object === Object && commonjsGlobal;
     var freeSelf = typeof self == "object" && self && self.Object === Object && self;
     var root = freeGlobal || freeSelf || Function("return this")();
-    var freeExports = exports$1 && !exports$1.nodeType && exports$1;
+    var freeExports = exports && !exports.nodeType && exports;
     var freeModule = freeExports && true && module && !module.nodeType && module;
     var moduleExports = freeModule && freeModule.exports === freeExports;
     var freeProcess = moduleExports && freeGlobal.process;
@@ -11849,14 +11832,14 @@ var hasRequiredElectronHttpExecutor;
 function requireElectronHttpExecutor() {
   if (hasRequiredElectronHttpExecutor) return electronHttpExecutor;
   hasRequiredElectronHttpExecutor = 1;
-  (function(exports$1) {
-    Object.defineProperty(exports$1, "__esModule", { value: true });
-    exports$1.ElectronHttpExecutor = exports$1.NET_SESSION_NAME = void 0;
-    exports$1.getNetSession = getNetSession;
+  (function(exports) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.ElectronHttpExecutor = exports.NET_SESSION_NAME = void 0;
+    exports.getNetSession = getNetSession;
     const builder_util_runtime_1 = requireOut();
-    exports$1.NET_SESSION_NAME = "electron-updater";
+    exports.NET_SESSION_NAME = "electron-updater";
     function getNetSession() {
-      return require$$1$2.session.fromPartition(exports$1.NET_SESSION_NAME, {
+      return require$$1$2.session.fromPartition(exports.NET_SESSION_NAME, {
         cache: false
       });
     }
@@ -11918,7 +11901,7 @@ function requireElectronHttpExecutor() {
         });
       }
     }
-    exports$1.ElectronHttpExecutor = ElectronHttpExecutor;
+    exports.ElectronHttpExecutor = ElectronHttpExecutor;
   })(electronHttpExecutor);
   return electronHttpExecutor;
 }
@@ -13682,16 +13665,16 @@ var hasRequiredTypes;
 function requireTypes() {
   if (hasRequiredTypes) return types;
   hasRequiredTypes = 1;
-  (function(exports$1) {
-    Object.defineProperty(exports$1, "__esModule", { value: true });
-    exports$1.UpdaterSignal = exports$1.UPDATE_DOWNLOADED = exports$1.DOWNLOAD_PROGRESS = exports$1.CancellationToken = void 0;
-    exports$1.addHandler = addHandler;
+  (function(exports) {
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.UpdaterSignal = exports.UPDATE_DOWNLOADED = exports.DOWNLOAD_PROGRESS = exports.CancellationToken = void 0;
+    exports.addHandler = addHandler;
     const builder_util_runtime_1 = requireOut();
-    Object.defineProperty(exports$1, "CancellationToken", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "CancellationToken", { enumerable: true, get: function() {
       return builder_util_runtime_1.CancellationToken;
     } });
-    exports$1.DOWNLOAD_PROGRESS = "download-progress";
-    exports$1.UPDATE_DOWNLOADED = "update-downloaded";
+    exports.DOWNLOAD_PROGRESS = "download-progress";
+    exports.UPDATE_DOWNLOADED = "update-downloaded";
     class UpdaterSignal {
       constructor(emitter) {
         this.emitter = emitter;
@@ -13703,16 +13686,16 @@ function requireTypes() {
         addHandler(this.emitter, "login", handler);
       }
       progress(handler) {
-        addHandler(this.emitter, exports$1.DOWNLOAD_PROGRESS, handler);
+        addHandler(this.emitter, exports.DOWNLOAD_PROGRESS, handler);
       }
       updateDownloaded(handler) {
-        addHandler(this.emitter, exports$1.UPDATE_DOWNLOADED, handler);
+        addHandler(this.emitter, exports.UPDATE_DOWNLOADED, handler);
       }
       updateCancelled(handler) {
         addHandler(this.emitter, "update-cancelled", handler);
       }
     }
-    exports$1.UpdaterSignal = UpdaterSignal;
+    exports.UpdaterSignal = UpdaterSignal;
     function addHandler(emitter, event, handler) {
       {
         emitter.on(event, handler);
@@ -15473,7 +15456,7 @@ var hasRequiredMain;
 function requireMain() {
   if (hasRequiredMain) return main$1;
   hasRequiredMain = 1;
-  (function(exports$1) {
+  (function(exports) {
     var __createBinding = main$1 && main$1.__createBinding || (Object.create ? (function(o, m, k, k2) {
       if (k2 === void 0) k2 = k;
       var desc = Object.getOwnPropertyDescriptor(m, k);
@@ -15487,53 +15470,53 @@ function requireMain() {
       if (k2 === void 0) k2 = k;
       o[k2] = m[k];
     }));
-    var __exportStar = main$1 && main$1.__exportStar || function(m, exports$12) {
-      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports$12, p)) __createBinding(exports$12, m, p);
+    var __exportStar = main$1 && main$1.__exportStar || function(m, exports2) {
+      for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports2, p)) __createBinding(exports2, m, p);
     };
-    Object.defineProperty(exports$1, "__esModule", { value: true });
-    exports$1.NsisUpdater = exports$1.MacUpdater = exports$1.RpmUpdater = exports$1.PacmanUpdater = exports$1.DebUpdater = exports$1.AppImageUpdater = exports$1.Provider = exports$1.NoOpLogger = exports$1.AppUpdater = exports$1.BaseUpdater = void 0;
+    Object.defineProperty(exports, "__esModule", { value: true });
+    exports.NsisUpdater = exports.MacUpdater = exports.RpmUpdater = exports.PacmanUpdater = exports.DebUpdater = exports.AppImageUpdater = exports.Provider = exports.NoOpLogger = exports.AppUpdater = exports.BaseUpdater = void 0;
     const fs_extra_1 = /* @__PURE__ */ requireLib();
     const path = require$$1;
     var BaseUpdater_1 = requireBaseUpdater();
-    Object.defineProperty(exports$1, "BaseUpdater", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "BaseUpdater", { enumerable: true, get: function() {
       return BaseUpdater_1.BaseUpdater;
     } });
     var AppUpdater_1 = requireAppUpdater();
-    Object.defineProperty(exports$1, "AppUpdater", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "AppUpdater", { enumerable: true, get: function() {
       return AppUpdater_1.AppUpdater;
     } });
-    Object.defineProperty(exports$1, "NoOpLogger", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "NoOpLogger", { enumerable: true, get: function() {
       return AppUpdater_1.NoOpLogger;
     } });
     var Provider_1 = requireProvider();
-    Object.defineProperty(exports$1, "Provider", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "Provider", { enumerable: true, get: function() {
       return Provider_1.Provider;
     } });
     var AppImageUpdater_1 = requireAppImageUpdater();
-    Object.defineProperty(exports$1, "AppImageUpdater", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "AppImageUpdater", { enumerable: true, get: function() {
       return AppImageUpdater_1.AppImageUpdater;
     } });
     var DebUpdater_1 = requireDebUpdater();
-    Object.defineProperty(exports$1, "DebUpdater", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "DebUpdater", { enumerable: true, get: function() {
       return DebUpdater_1.DebUpdater;
     } });
     var PacmanUpdater_1 = requirePacmanUpdater();
-    Object.defineProperty(exports$1, "PacmanUpdater", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "PacmanUpdater", { enumerable: true, get: function() {
       return PacmanUpdater_1.PacmanUpdater;
     } });
     var RpmUpdater_1 = requireRpmUpdater();
-    Object.defineProperty(exports$1, "RpmUpdater", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "RpmUpdater", { enumerable: true, get: function() {
       return RpmUpdater_1.RpmUpdater;
     } });
     var MacUpdater_1 = requireMacUpdater();
-    Object.defineProperty(exports$1, "MacUpdater", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "MacUpdater", { enumerable: true, get: function() {
       return MacUpdater_1.MacUpdater;
     } });
     var NsisUpdater_1 = requireNsisUpdater();
-    Object.defineProperty(exports$1, "NsisUpdater", { enumerable: true, get: function() {
+    Object.defineProperty(exports, "NsisUpdater", { enumerable: true, get: function() {
       return NsisUpdater_1.NsisUpdater;
     } });
-    __exportStar(requireTypes(), exports$1);
+    __exportStar(requireTypes(), exports);
     let _autoUpdater;
     function doLoadAutoUpdater() {
       if (process.platform === "win32") {
@@ -15567,7 +15550,7 @@ function requireMain() {
       }
       return _autoUpdater;
     }
-    Object.defineProperty(exports$1, "autoUpdater", {
+    Object.defineProperty(exports, "autoUpdater", {
       enumerable: true,
       get: () => {
         return _autoUpdater || doLoadAutoUpdater();
@@ -15645,6 +15628,7 @@ if (!gotTheLock) {
     }
   });
   app.whenReady().then(async () => {
+    Menu.setApplicationMenu(null);
     await createWindow();
     createTray();
     registerShortcuts();

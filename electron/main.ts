@@ -27,6 +27,9 @@ if (!gotTheLock) {
   })
 
   app.whenReady().then(async () => {
+    // 移除默认应用菜单栏
+    Menu.setApplicationMenu(null)
+
     // 创建主窗口
     await createWindow()
 

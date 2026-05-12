@@ -18,7 +18,19 @@
       "Bash(curl -s http://localhost:5173/)",
       "Bash(curl -s http://localhost:5173/src/main.ts)",
       "Bash(kill 40882)",
-      "Bash(find /Users/lion/Documents/learn/app-jw -user root -not -path */node_modules/.pnpm/*)"
+      "Bash(find /Users/lion/Documents/learn/app-jw -user root -not -path */node_modules/.pnpm/*)",
+      "Bash(netstat -ano)",
+      "Bash(tasklist /FI \"PID eq 21456\")",
+      "Bash(tasklist /FI \"PID eq 30504\")",
+      "Bash(taskkill /F /PID 21456)",
+      "Bash(taskkill /F /PID 30504)",
+      "Bash(taskkill /F /PID 41728)",
+      "Bash(powershell -Command \"Get-Process -Id 21456,30504,41728 -ErrorAction SilentlyContinue | Stop-Process -Force\")",
+      "Bash(cmd //c \"for /f \\\\\"tokens=5\\\\\" %a in \\('netstat -ano ^| findstr :5173[[:space:]]'\\) do @taskkill /F /PID %a 2>nul\")",
+      "Bash(node:*)",
+      "Bash(powershell -ExecutionPolicy Bypass -File \"c:\\\\Users\\\\zexin\\\\Documents\\\\work\\\\desk-jclaw\\\\kill_port.ps1\")",
+      "Bash(ELECTRON_MIRROR=\"https://npmmirror.com/mirrors/electron/\" npm run build:win)",
+      "Bash(powershell -Command \"Copy-Item 'c:\\\\Users\\\\zexin\\\\Documents\\\\work\\\\desk-jclaw\\\\public\\\\logo.png' -Destination 'c:\\\\Users\\\\zexin\\\\Documents\\\\work\\\\desk-jclaw\\\\build\\\\icon.png' -Force\")"
     ]
   }
 }

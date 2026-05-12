@@ -1,0 +1,81 @@
+name: Build Electron App
+
+on:
+  push:
+    branches: [main, test]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build for ${{ matrix.platform }}
+    strategy:
+      matrix:
+        include:
+          - platform: windows
+            os: windows-latest
+            target: win
+          - platform: mac
+            os: macos-latest
+            target: mac
+          - platform: linux
+            os: ubuntu-latest
+            target: linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx vue-tsc -b
+
+      - name: Build Vite + Electron
+        run: npx vite build --mode electron
+
+      - name: Package with electron-builder
+        run: npx electron-builder --${{ matrix.target }} --publish never
+        env:
+          # macOS code signing: set to skip if no certificate
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          CSC_SKIP_NOTARIZATION: true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jclaw-${{ matrix.platform }}
+          path: release/*
+
+  release:
+    name: Create GitHub Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+
+      - name: Display structure
+        run: ls -R release/
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/**/*
+          draft: true
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
