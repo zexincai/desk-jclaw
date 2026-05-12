@@ -175,7 +175,7 @@ export function useAuth() {
     // 立即设置上一次手机号，以便请求拦截器能生成正确的 deterministic deviceId
     localStorage.setItem('jclaw_last_phone', phoneNumber)
 
-    const res = (await aiSysLoginPc({ phoneNumber, code, forceType: 1, uuid, sourceType: 3, operateSource: 2 })) as any
+    const res = (await aiSysLoginPc({ phoneNumber, code, forceType: 1, uuid, sourceType: 3, operateSource: 3 })) as any
     const data = res.data ?? res
     const accessToken = data.access_token
     const userList: Role[] = data.userList ?? []

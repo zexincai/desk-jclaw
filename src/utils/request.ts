@@ -24,7 +24,7 @@ async function request<T>(url: string, options: RequestOptions = {}): Promise<Ap
 
   // 处理 URL 参数
   let finalUrl = url
-  const allParams = { ...params, operatePort: 2 }
+  const allParams = { ...params, operatePort: 3 }
   const searchParams = new URLSearchParams(
     Object.entries(allParams).map(([k, v]) => [k, String(v)])
   )

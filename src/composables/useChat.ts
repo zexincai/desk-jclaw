@@ -364,7 +364,7 @@ export function useChat() {
       const actionFormatHint = is360Browser() ? ' action-tag-format: bracket ' : ''
       const sysLines = [
         role?.userRolePrompt || '',
-        ` operate-port: 2 ${actionFormatHint}`,
+        ` operate-port: 3 ${actionFormatHint}`,
         auth.token.value ? `用户令牌：${auth.token.value}` : '',
       ].filter(Boolean).join('\n')
       const sysBlock = sysLines ? `<system>\n${sysLines}\n</system>\n\n` : ''
@@ -525,7 +525,7 @@ export function useChat() {
     const actionFormatHint = is360Browser() ? ' action-tag-format: bracket ' : ''
     const sysLines = [
       role?.userRolePrompt || '',
-      ` operate-port: 2 ${actionFormatHint}`,
+      ` operate-port: 3 ${actionFormatHint}`,
       fromIframe ? 'source: iframe' : '',
       auth.token.value ? `用户令牌：${auth.token.value}` : '',
     ].filter(Boolean).join('\n')

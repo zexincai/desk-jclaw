@@ -34,7 +34,7 @@ MessageContentManager.shared().register(JCLAW_CONTENT_TYPE, () => new JClawMessa
 // ────────────────────────────────────────────────
 
 // sourceType: 3 = 智能体-pc端
-const SOURCE_TYPE = 3
+const SOURCE_TYPE = 4
 
 // ── 模块级单例状态 ──────────────────────────────
 const status = ref<'connecting' | 'connected' | 'disconnected'>('disconnected')
@@ -79,6 +79,7 @@ export function useWukongIM() {
           callback(wsAddr)
         }
       } else {
+        // 开发环境的时候取环境变量
         WKSDK.shared().config.addr = wsAddr
       }
       currentTelephone = telephone
