@@ -19,9 +19,6 @@ jobs:
           - platform: mac
             os: macos-latest
             target: mac
-          - platform: linux
-            os: ubuntu-latest
-            target: linux
 
     runs-on: ${{ matrix.os }}
 
