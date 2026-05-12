@@ -109,15 +109,7 @@ export async function createWindow() {
     }
   })
 
-  // 加载应用
-  if (isDev) {
-    await mainWindow.loadURL('http://localhost:5173')
-    mainWindow.webContents.openDevTools()
-  } else {
-    await mainWindow.loadFile(path.join(appRoot, 'dist/index.html'))
-  }
-
-  // 窗口准备好后显示
+  // 窗口准备好后显示 — 必须在 loadURL/loadFile 之前注册，避免竞态
   mainWindow.once('ready-to-show', () => {
     if (!mainWindow) return
 
@@ -126,6 +118,14 @@ export async function createWindow() {
     }
     mainWindow.show()
   })
+
+  // 加载应用
+  if (isDev) {
+    await mainWindow.loadURL('http://localhost:5173')
+    mainWindow.webContents.openDevTools()
+  } else {
+    await mainWindow.loadFile(path.join(appRoot, 'dist/index.html'))
+  }
 
   // 保存窗口状态
   mainWindow.on('close', () => {

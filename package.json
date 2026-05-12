@@ -39,6 +39,13 @@
     "directories": {
       "output": "release"
     },
+    "extraResources": [
+      {
+        "from": "build",
+        "to": "build",
+        "filter": ["icon.*"]
+      }
+    ],
     "win": {
       "icon": "build/icon.ico"
     },
