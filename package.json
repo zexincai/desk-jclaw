@@ -36,8 +36,15 @@
   "build": {
     "appId": "com.jclaw.desktop",
     "productName": "Jclaw",
+    "electronDownload": {
+      "mirror": "https://npmmirror.com/mirrors/electron/"
+    },
+    "files": [
+      "dist/**",
+      "dist-electron/**"
+    ],
     "directories": {
-      "output": "release"
+      "output": "release/${version}"
     },
     "extraResources": [
       {
